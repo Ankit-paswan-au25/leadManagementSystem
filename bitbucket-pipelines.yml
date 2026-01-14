@@ -1,18 +1,30 @@
-#  Template NodeJS build
-
-#  This template allows you to validate your NodeJS code.
-#  The workflow allows running tests and code linting on the default branch.
+# Bitbucket Pipelines for Sales Management System
+# Monorepo with backend and frontend
 
 image: node:20
+
+definitions:
+  caches:
+    backend-node: backend/node_modules
+    frontend-node: frontend/node_modules
 
 pipelines:
   default:
     - parallel:
         - step:
-            name: Build and Test
+            name: Backend - Build and Test
             caches:
-              - node
+              - backend-node
             script:
-              - npm install
+              - cd backend
+              - npm ci
               - npm test
-        
+        - step:
+            name: Frontend - Build and Test
+            caches:
+              - frontend-node
+            script:
+              - cd frontend
+              - npm ci
+              - npm run build:check || npm run build
+              - npm test
