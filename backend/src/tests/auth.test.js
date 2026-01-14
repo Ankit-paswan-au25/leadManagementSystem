@@ -19,7 +19,7 @@ describe('Auth API', () => {
 
     it('should login successfully with correct credentials', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'testPassword123',
@@ -54,7 +54,7 @@ describe('Auth API', () => {
 
     it('should return 401 for wrong password', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'wrongPassword',
@@ -68,7 +68,7 @@ describe('Auth API', () => {
 
     it('should return 401 for non-existent user', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'nonexistent@example.com',
           password: 'testPassword123',
@@ -87,7 +87,7 @@ describe('Auth API', () => {
       );
 
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'testPassword123',
@@ -106,7 +106,7 @@ describe('Auth API', () => {
       );
 
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'testPassword123',
@@ -119,7 +119,7 @@ describe('Auth API', () => {
 
     it('should handle case-insensitive email', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'TEST@EXAMPLE.COM',
           password: 'testPassword123',
@@ -132,7 +132,7 @@ describe('Auth API', () => {
 
     it('should return validation error for missing email', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           password: 'testPassword123',
         })
@@ -143,7 +143,7 @@ describe('Auth API', () => {
 
     it('should return validation error for missing password', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
         })
@@ -154,7 +154,7 @@ describe('Auth API', () => {
 
     it('should generate token with correct expiry (8 hours)', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'testPassword123',
@@ -177,7 +177,7 @@ describe('Auth API', () => {
 
     it('should not expose passwordHash in response', async () => {
       const response = await request(app)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'testPassword123',
@@ -198,7 +198,7 @@ describe('Auth API', () => {
 
     it('should register a new user successfully', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',
@@ -244,7 +244,7 @@ describe('Auth API', () => {
       await existingUser.save();
 
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'register@test.com',
@@ -258,7 +258,7 @@ describe('Auth API', () => {
 
     it('should return validation error for missing name', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           email: 'newuser@example.com',
           password: 'password123',
@@ -272,7 +272,7 @@ describe('Auth API', () => {
 
     it('should return validation error for missing email', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           password: 'password123',
@@ -286,7 +286,7 @@ describe('Auth API', () => {
 
     it('should return validation error for missing password', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',
@@ -300,7 +300,7 @@ describe('Auth API', () => {
 
     it('should return validation error for invalid email format', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'invalid-email',
@@ -315,7 +315,7 @@ describe('Auth API', () => {
 
     it('should return validation error for password too short', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',
@@ -330,7 +330,7 @@ describe('Auth API', () => {
 
     it('should handle case-insensitive email', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'NEWUSER@EXAMPLE.COM',
@@ -343,7 +343,7 @@ describe('Auth API', () => {
 
     it('should trim name and email', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: '  New User  ',
           email: '  newuser@example.com  ',
@@ -357,7 +357,7 @@ describe('Auth API', () => {
 
     it('should not return token on registration', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',
@@ -370,7 +370,7 @@ describe('Auth API', () => {
 
     it('should set default role to USER', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',
@@ -383,7 +383,7 @@ describe('Auth API', () => {
 
     it('should set default status to PENDING', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',
@@ -396,7 +396,7 @@ describe('Auth API', () => {
 
     it('should hash password before saving', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({
           name: 'New User',
           email: 'newuser@example.com',

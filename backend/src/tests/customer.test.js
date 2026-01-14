@@ -154,7 +154,7 @@ describe('Customer Conversion API', () => {
     const token = require('../utils/token').generateToken(testUser);
 
     const response = await request
-      .post(`/leads/${testLead._id}/convert-to-customer`)
+      .post(`/api/leads/${testLead._id}/convert-to-customer`)
       .set('Authorization', `Bearer ${token}`)
       .expect(201);
 
@@ -191,7 +191,7 @@ describe('Customer Conversion API', () => {
     const token = require('../utils/token').generateToken(testUser);
 
     await request
-      .post(`/leads/${openLead._id}/convert-to-customer`)
+      .post(`/api/leads/${openLead._id}/convert-to-customer`)
       .set('Authorization', `Bearer ${token}`)
       .expect(400);
   });
@@ -209,7 +209,7 @@ describe('Customer Conversion API', () => {
     const token = require('../utils/token').generateToken(testUser);
 
     await request
-      .post(`/leads/${testLead._id}/convert-to-customer`)
+      .post(`/api/leads/${testLead._id}/convert-to-customer`)
       .set('Authorization', `Bearer ${token}`)
       .expect(409);
   });

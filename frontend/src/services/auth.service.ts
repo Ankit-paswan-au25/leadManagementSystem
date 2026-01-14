@@ -64,34 +64,88 @@ export const authService = {
    * @throws Error for other failures
    */
   async login(email: string, password: string): Promise<LoginResponse> {
-    const response = await post<{ token: string; user: User }>('/auth/login', {
-      email,
-      password,
-    });
+    try {
+      const response = await post<{ token: string; user: User }>('/auth/login', {
+        email,
+        password,
+      });
 
-    // Backend returns { status: 'success', message, data }
-    // Check for status field from backend response
-    const backendResponse = response as any;
-    const isSuccess = backendResponse.status === 'success' || response.success === true;
-    
-    if (!isSuccess || !response.data) {
-      throw new Error(response.message || 'Login failed');
+      // Backend returns { status: 'success', message, data }
+      // Check for status field from backend response
+      const backendResponse = response as any;
+      const isSuccess = backendResponse.status === 'success' || response.success === true;
+      
+      if (!isSuccess || !response.data) {
+        throw new Error(response.message || 'Login failed');
+      }
+
+      // Transform backend response to match LoginResponse interface
+      const { token, user } = response.data;
+
+      if (!token || !user || !user.role || !user.email) {
+        throw new Error('Invalid response from server');
+      }
+
+      return {
+        token,
+        user,
+        role: user.role,
+        email: user.email,
+        refreshToken: (response.data as any).refreshToken,
+      };
+    } catch (error) {
+      // Handle AxiosError
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError<{ message?: string; errors?: Record<string, string> }>;
+        const status = axiosError.response?.status;
+        const errorData = axiosError.response?.data;
+
+        // Handle 401 - Invalid credentials
+        if (status === 401) {
+          const message = errorData?.message || 'Invalid email or password';
+          throw new Error(message);
+        }
+
+        // Handle 403 - Account disabled
+        if (status === 403) {
+          const message = errorData?.message || 'Account is not active. Please contact administrator.';
+          throw new Error(message);
+        }
+
+        // Handle 422 - Validation errors
+        if (status === 422) {
+          if (errorData?.errors) {
+            const errorMessages = Object.values(errorData.errors).join(', ');
+            throw new Error(errorMessages || errorData?.message || 'Validation failed');
+          }
+          throw new Error(errorData?.message || 'Validation failed');
+        }
+
+        // Handle other HTTP errors
+        if (errorData?.message) {
+          throw new Error(errorData.message);
+        }
+
+        // Handle network/timeout errors
+        if (axiosError.code === 'ECONNABORTED' || (axiosError.message && axiosError.message.includes('timeout'))) {
+          throw new Error('Request timed out. Please try again.');
+        }
+
+        if (!axiosError.response) {
+          throw new Error('Network error. Please check your connection and try again.');
+        }
+
+        throw new Error(errorData?.message || 'Login failed. Please try again.');
+      }
+
+      // Re-throw if it's already an Error
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      // Handle unknown error types
+      throw new Error('Login failed. Please try again.');
     }
-
-    // Transform backend response to match LoginResponse interface
-    const { token, user } = response.data;
-
-    if (!token || !user || !user.role || !user.email) {
-      throw new Error('Invalid response from server');
-    }
-
-    return {
-      token,
-      user,
-      role: user.role,
-      email: user.email,
-      refreshToken: (response.data as any).refreshToken,
-    };
   },
 
   /**

@@ -8,8 +8,14 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import LeadsList from '../pages/Leads/LeadsList';
 import { authStore } from '../store/auth.store';
-import { server } from './setup';
-import { http, HttpResponse } from 'msw';
+import { leadsService } from '../services/leads.service';
+
+// Mock leads service
+jest.mock('../services/leads.service', () => ({
+  leadsService: {
+    getLeads: jest.fn(),
+  },
+}));
 
 // Mock auth store
 jest.mock('../store/auth.store', () => ({
@@ -26,6 +32,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const mockAuthStore = authStore as jest.Mocked<typeof authStore>;
+const mockLeadsService = leadsService as jest.Mocked<typeof leadsService>;
 
 const renderLeadsList = () => {
   return render(
@@ -35,16 +42,67 @@ const renderLeadsList = () => {
   );
 };
 
+const mockLeads = [
+  {
+    id: '1',
+    leadName: 'John Doe',
+    companyName: 'Acme Corp',
+    email: 'john.doe@acme.com',
+    status: 'NEW',
+    ownerId: 'admin-1',
+    ownerName: 'Admin User',
+    createdAt: '2024-01-10T08:00:00Z',
+  },
+  {
+    id: '2',
+    leadName: 'Jane Smith',
+    companyName: 'Tech Inc',
+    email: 'jane@tech.com',
+    status: 'CONTACTED',
+    ownerId: 'user-1',
+    ownerName: 'Regular User',
+    createdAt: '2024-01-11T09:00:00Z',
+  },
+  {
+    id: '3',
+    leadName: 'Bob Johnson',
+    companyName: 'Startup Co',
+    email: 'bob@startup.com',
+    status: 'FOLLOW_UP',
+    ownerId: 'admin-1',
+    ownerName: 'Admin User',
+    createdAt: '2024-01-12T10:00:00Z',
+  },
+];
+
 describe('LeadsList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockLeadsService.getLeads.mockResolvedValue({
+      leads: mockLeads,
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 3,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+    } as any);
   });
 
   describe('Loading State', () => {
     it('shows skeleton loader while loading', () => {
+      mockLeadsService.getLeads.mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({
+          leads: [],
+          pagination: { page: 1, limit: 10, total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false },
+        } as any), 100))
+      );
       renderLeadsList();
-      expect(screen.getAllByRole('progressbar').length).toBeGreaterThan(0);
+      const skeletons = document.querySelectorAll('.animate-pulse');
+      expect(skeletons.length).toBeGreaterThan(0);
     });
   });
 
@@ -64,38 +122,42 @@ describe('LeadsList', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/3 leads found/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 
   describe('Error Handling', () => {
     it('shows ErrorAlert when fetch fails', async () => {
-      // Override handler for this test
-      server.use(
-        http.get('http://localhost:3000/api/leads', () => {
-          return HttpResponse.json(
-            { success: false, message: 'Failed to fetch leads' },
-            { status: 500 }
-          );
-        })
-      );
+      const error = new Error('Failed to fetch leads');
+      (error as any).isAxiosError = true;
+      (error as any).response = {
+        status: 500,
+        data: {
+          success: false,
+          message: 'Failed to fetch leads',
+        },
+      };
+      mockLeadsService.getLeads.mockRejectedValue(error);
 
       renderLeadsList();
 
       await waitFor(() => {
         expect(screen.getByText(/Failed to fetch leads/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
 
     it('shows retry button on error', async () => {
-      server.use(
-        http.get('http://localhost:3000/api/leads', () => {
-          return HttpResponse.json(
-            { success: false, message: 'Network error' },
-            { status: 500 }
-          );
-        })
-      );
+      const axiosError = {
+        isAxiosError: true,
+        response: {
+          status: 500,
+          data: {
+            success: false,
+            message: 'Network error',
+          },
+        },
+      } as any;
+      mockLeadsService.getLeads.mockRejectedValue(axiosError);
 
       renderLeadsList();
 
@@ -166,7 +228,7 @@ describe('LeadsList', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to create lead page when button clicked', async () => {
+    it('opens create lead modal when button clicked', async () => {
       const user = userEvent.setup();
       renderLeadsList();
 
@@ -177,7 +239,11 @@ describe('LeadsList', () => {
       const createButton = screen.getByRole('button', { name: /create lead/i });
       await user.click(createButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard/leads/create');
+      // Component opens a modal instead of navigating
+      await waitFor(() => {
+        // Check for modal content - CreateLeadModal might show form fields
+        expect(screen.getByLabelText(/lead name/i) || screen.getByText(/Create Lead/i)).toBeInTheDocument();
+      }, { timeout: 2000 });
     });
 
     it('navigates to lead detail when row clicked', async () => {

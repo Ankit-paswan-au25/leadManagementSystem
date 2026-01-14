@@ -252,7 +252,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testAdmin);
 
     const response = await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: testProduct._id.toString(),
@@ -299,7 +299,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testAdmin);
 
     await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: dailyProduct._id.toString(),
@@ -328,7 +328,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testAdmin);
 
     await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: yearlyProduct._id.toString(),
@@ -356,7 +356,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testAdmin);
 
     const response = await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: noExpiryProduct._id.toString(),
@@ -375,7 +375,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testUser);
 
     await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: testProduct._id.toString(),
@@ -401,7 +401,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testAdmin);
 
     await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: fakeId.toString(),
@@ -416,7 +416,7 @@ describe('Product Assignment API', () => {
     const token = require('../utils/token').generateToken(testAdmin);
 
     await request
-      .post(`/customers/${testCustomer._id}/products`)
+      .post(`/api/customers/${testCustomer._id}/products`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         productId: testProduct._id.toString(),

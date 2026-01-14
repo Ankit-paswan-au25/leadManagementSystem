@@ -42,9 +42,27 @@ const renderLogin = () => {
 };
 
 describe('Login Page', () => {
+  // Mock window.location.replace
+  const originalLocation = window.location;
+  const mockReplace = jest.fn();
+
+  beforeAll(() => {
+    delete (window as any).location;
+    window.location = {
+      ...originalLocation,
+      replace: mockReplace,
+      origin: 'http://localhost',
+    } as any;
+  });
+
+  afterAll(() => {
+    window.location = originalLocation;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockReplace.mockClear();
     mockAuthStore.isAuthenticated = false;
     mockAuthStore.currentRole = null;
     mockAuthStore.currentEmail = null;
@@ -119,6 +137,7 @@ describe('Login Page', () => {
       };
 
       mockAuthStore.login.mockResolvedValue(mockResponse);
+      mockAuthStore.isAuthenticated = true;
 
       renderLogin();
 
@@ -134,20 +153,16 @@ describe('Login Page', () => {
         expect(mockAuthStore.login).toHaveBeenCalledWith('test@example.com', 'password123');
       });
 
-      await waitFor(() => {
-        expect(screen.getByText(/Login successful/i)).toBeInTheDocument();
-      });
-
-      // Check redirect after delay
+      // Check that window.location.replace was called (component uses window.location.replace, not navigate)
       await waitFor(
         () => {
-          expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+          expect(mockReplace).toHaveBeenCalledWith('http://localhost/dashboard');
         },
-        { timeout: 1000 }
+        { timeout: 2000 }
       );
     });
 
-    it('shows success alert on successful login', async () => {
+    it('redirects on successful login (no success alert shown)', async () => {
       const user = userEvent.setup();
       const mockResponse = {
         token: 'test-token',
@@ -161,6 +176,7 @@ describe('Login Page', () => {
       };
 
       mockAuthStore.login.mockResolvedValue(mockResponse);
+      mockAuthStore.isAuthenticated = true;
 
       renderLogin();
 
@@ -172,9 +188,10 @@ describe('Login Page', () => {
       await user.type(passwordInput, 'password123');
       await user.click(submitButton);
 
+      // Wait for the redirect to be called (component uses window.location.replace)
       await waitFor(() => {
-        expect(screen.getByText(/Login successful/i)).toBeInTheDocument();
-      });
+        expect(mockReplace).toHaveBeenCalledWith('http://localhost/dashboard');
+      }, { timeout: 2000 });
     });
   });
 

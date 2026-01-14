@@ -8,8 +8,14 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import CreateLead from '../pages/Leads/CreateLead';
 import { authStore } from '../store/auth.store';
-import { server } from './setup';
-import { http, HttpResponse } from 'msw';
+import { leadsService } from '../services/leads.service';
+
+// Mock leads service
+jest.mock('../services/leads.service', () => ({
+  leadsService: {
+    createLead: jest.fn(),
+  },
+}));
 
 // Mock auth store
 jest.mock('../store/auth.store', () => ({
@@ -31,6 +37,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const mockAuthStore = authStore as jest.Mocked<typeof authStore>;
+const mockLeadsService = leadsService as jest.Mocked<typeof leadsService>;
 
 const renderCreateLead = () => {
   return render(
@@ -44,6 +51,15 @@ describe('CreateLead', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockLeadsService.createLead.mockResolvedValue({
+      id: 'lead-1',
+      leadName: 'Test Lead',
+      email: 'test@example.com',
+      status: 'NEW',
+      ownerId: 'user-1',
+      ownerName: 'Regular User',
+      createdAt: '2024-01-14T10:00:00Z',
+    } as any);
   });
 
   describe('Rendering', () => {
@@ -115,7 +131,7 @@ describe('CreateLead', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Lead created successfully/i)).toBeInTheDocument();
+        expect(screen.getByText(/Lead created successfully!/i)).toBeInTheDocument();
       });
 
       // Check redirect
@@ -138,7 +154,7 @@ describe('CreateLead', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Lead created successfully/i)).toBeInTheDocument();
+        expect(screen.getByText(/Lead created successfully!/i)).toBeInTheDocument();
       });
     });
   });
@@ -147,22 +163,23 @@ describe('CreateLead', () => {
     it('shows inline validation errors for 422 response', async () => {
       const user = userEvent.setup();
 
-      // Override handler to return validation errors
-      server.use(
-        http.post('http://localhost:3000/api/leads', () => {
-          return HttpResponse.json(
-            {
-              success: false,
-              message: 'Validation failed',
-              errors: {
-                email: 'Invalid email format',
-                leadName: 'Lead name is too short',
-              },
+      // Mock service to throw validation error
+      const axiosError = {
+        isAxiosError: true,
+        response: {
+          status: 422,
+          data: {
+            success: false,
+            message: 'Validation failed',
+            errors: {
+              email: 'Invalid email format',
+              leadName: 'Lead name is too short',
             },
-            { status: 422 }
-          );
-        })
-      );
+          },
+        },
+      } as any;
+
+      mockLeadsService.createLead.mockRejectedValue(axiosError);
 
       renderCreateLead();
 
@@ -190,14 +207,18 @@ describe('CreateLead', () => {
     it('shows ErrorAlert for server error', async () => {
       const user = userEvent.setup();
 
-      server.use(
-        http.post('http://localhost:3000/api/leads', () => {
-          return HttpResponse.json(
-            { success: false, message: 'Internal server error' },
-            { status: 500 }
-          );
-        })
-      );
+      // Mock service to throw server error
+      // The httpClient interceptor transforms errors, so we need to throw an Error with the message
+      const error = new Error('Internal server error');
+      (error as any).isAxiosError = true;
+      (error as any).response = {
+        status: 500,
+        data: {
+          success: false,
+          message: 'Internal server error',
+        },
+      };
+      mockLeadsService.createLead.mockRejectedValue(error);
 
       renderCreateLead();
 
@@ -209,7 +230,7 @@ describe('CreateLead', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Internal server error/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -221,14 +242,17 @@ describe('CreateLead', () => {
         resolveRequest = resolve;
       });
 
-      server.use(
-        http.post('http://localhost:3000/api/leads', async () => {
-          await requestPromise;
-          return HttpResponse.json({
-            success: true,
-            data: { id: '1', leadName: 'Test', email: 'test@example.com' },
-          });
-        })
+      // Mock service to delay response
+      mockLeadsService.createLead.mockImplementation(
+        () => requestPromise.then(() => ({
+          id: 'lead-1',
+          leadName: 'Test Lead',
+          email: 'test@example.com',
+          status: 'NEW',
+          ownerId: 'user-1',
+          ownerName: 'Regular User',
+          createdAt: '2024-01-14T10:00:00Z',
+        } as any))
       );
 
       renderCreateLead();

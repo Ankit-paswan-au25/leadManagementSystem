@@ -7,7 +7,7 @@ const mockActivities: LeadActivity[] = [
   {
     id: 'act-1',
     leadId: '1',
-    activityType: 'LEAD_CREATED',
+    activityType: 'CREATED',
     performedBy: 'admin-1',
     performedByType: 'ADMIN',
     performedByName: 'Admin User',

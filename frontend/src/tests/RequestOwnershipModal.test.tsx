@@ -3,6 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import RequestOwnershipModal from '../components/Leads/RequestOwnershipModal';
 import { ownershipService } from '../services/ownership.service';
+import { authService } from '../services/auth.service';
+import { authStore } from '../store/auth.store';
 
 // Mock ownership service
 jest.mock('../services/ownership.service', () => ({
@@ -11,7 +13,27 @@ jest.mock('../services/ownership.service', () => ({
   },
 }));
 
+// Mock auth service
+jest.mock('../services/auth.service', () => ({
+  authService: {
+    getUsers: jest.fn(),
+  },
+}));
+
+// Mock auth store
+jest.mock('../store/auth.store', () => ({
+  authStore: {
+    currentUser: {
+      id: 'user-1',
+      email: 'user@example.com',
+      role: 'USER',
+      name: 'Regular User',
+    },
+  },
+}));
+
 const mockOwnershipService = ownershipService as jest.Mocked<typeof ownershipService>;
+const mockAuthService = authService as jest.Mocked<typeof authService>;
 
 describe('RequestOwnershipModal', () => {
   beforeEach(() => {
@@ -29,6 +51,20 @@ describe('RequestOwnershipModal', () => {
       requestedAt: '2024-01-14T10:00:00Z',
       status: 'PENDING',
     });
+    mockAuthService.getUsers.mockResolvedValue([
+      {
+        id: 'admin-1',
+        email: 'admin@example.com',
+        role: 'ADMIN',
+        name: 'Admin User',
+      },
+      {
+        id: 'user-1',
+        email: 'user@example.com',
+        role: 'USER',
+        name: 'Regular User',
+      },
+    ]);
   });
 
   describe('Rendering', () => {
@@ -43,7 +79,7 @@ describe('RequestOwnershipModal', () => {
       );
 
       expect(screen.getByText('Request Ownership Change')).toBeInTheDocument();
-      expect(screen.getByText(/Requesting ownership change for:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Lead Name:/i)).toBeInTheDocument();
       expect(screen.getByText('Test Lead')).toBeInTheDocument();
     });
 
@@ -70,10 +106,12 @@ describe('RequestOwnershipModal', () => {
         />
       );
 
-      // Owners are hardcoded in the component, so we just check they're rendered
+      // Wait for users to load and check they appear in the dropdown
       await waitFor(() => {
-        expect(screen.getByText('Admin User')).toBeInTheDocument();
-        expect(screen.getByText('Regular User')).toBeInTheDocument();
+        const select = screen.getByLabelText(/Requested Owner/i);
+        expect(select).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'Admin User' })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'Regular User (You)' })).toBeInTheDocument();
       });
     });
   });
@@ -118,8 +156,10 @@ describe('RequestOwnershipModal', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Admin User')).toBeInTheDocument();
-        expect(screen.getByText('Regular User')).toBeInTheDocument();
+        const select = screen.getByLabelText(/Requested Owner/i);
+        expect(select).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'Admin User' })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'Regular User (You)' })).toBeInTheDocument();
       });
     });
   });

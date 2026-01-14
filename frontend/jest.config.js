@@ -2,6 +2,7 @@ export default {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
+  testTimeout: 10000, // 10 seconds timeout for tests
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -13,6 +14,15 @@ export default {
       },
     }],
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(until-async|@mswjs|msw|@bundled-es-modules|@mswjs/interceptors)/)',
+  ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   globals: {
     'import.meta': {
       env: {

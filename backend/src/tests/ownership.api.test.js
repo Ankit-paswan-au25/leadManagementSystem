@@ -96,7 +96,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should return pending requests for ADMIN', async () => {
       const response = await request(app)
-        .get('/ownership/requests')
+        .get('/api/ownership/requests')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
@@ -112,13 +112,14 @@ describe('Ownership Approval APIs', () => {
       expect(requestData).toHaveProperty('leadEmail');
       expect(requestData).toHaveProperty('currentOwnerId');
       expect(requestData).toHaveProperty('requestedOwnerId');
-      expect(requestData).toHaveProperty('requestedBy');
+      expect(requestData).toHaveProperty('requestedById');
+      expect(requestData).toHaveProperty('requestedByName');
       expect(requestData).toHaveProperty('requestedAt');
     });
 
     it('should return 403 for USER (non-admin)', async () => {
       const response = await request(app)
-        .get('/ownership/requests')
+        .get('/api/ownership/requests')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(403);
 
@@ -127,20 +128,20 @@ describe('Ownership Approval APIs', () => {
 
     it('should return 401 for missing token', async () => {
       await request(app)
-        .get('/ownership/requests')
+        .get('/api/ownership/requests')
         .expect(401);
     });
 
     it('should exclude already processed requests', async () => {
       // Approve one request
       await request(app)
-        .post(`/ownership/requests/${userLead._id}/approve`)
+        .post(`/api/ownership/requests/${userLead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
       // List requests again
       const response = await request(app)
-        .get('/ownership/requests')
+        .get('/api/ownership/requests')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
@@ -176,7 +177,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should approve ownership change and update lead.ownerId', async () => {
       const response = await request(app)
-        .post(`/ownership/requests/${userLead._id}/approve`)
+        .post(`/api/ownership/requests/${userLead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
@@ -191,7 +192,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should create OWNER_CHANGED activity with correct ownerAtTime', async () => {
       await request(app)
-        .post(`/ownership/requests/${userLead._id}/approve`)
+        .post(`/api/ownership/requests/${userLead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
@@ -213,7 +214,7 @@ describe('Ownership Approval APIs', () => {
       const mongoose = require('mongoose');
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .post(`/ownership/requests/${fakeId}/approve`)
+        .post(`/api/ownership/requests/${fakeId}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
 
@@ -232,7 +233,7 @@ describe('Ownership Approval APIs', () => {
       await newLead.save();
 
       const response = await request(app)
-        .post(`/ownership/requests/${newLead._id}/approve`)
+        .post(`/api/ownership/requests/${newLead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
 
@@ -242,7 +243,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should return 403 for USER (non-admin)', async () => {
       const response = await request(app)
-        .post(`/ownership/requests/${userLead._id}/approve`)
+        .post(`/api/ownership/requests/${userLead._id}/approve`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(403);
 
@@ -252,13 +253,13 @@ describe('Ownership Approval APIs', () => {
     it('should not allow duplicate approvals', async () => {
       // Approve first time
       await request(app)
-        .post(`/ownership/requests/${userLead._id}/approve`)
+        .post(`/api/ownership/requests/${userLead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
       // Try to approve again (should fail - no pending request)
       const response = await request(app)
-        .post(`/ownership/requests/${userLead._id}/approve`)
+        .post(`/api/ownership/requests/${userLead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
 
@@ -292,7 +293,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should reject ownership change without updating lead.ownerId', async () => {
       const response = await request(app)
-        .post(`/ownership/requests/${userLead._id}/reject`)
+        .post(`/api/ownership/requests/${userLead._id}/reject`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ reason: 'Not suitable for transfer' })
         .expect(200);
@@ -307,7 +308,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should create OWNER_CHANGE_REJECTED activity', async () => {
       await request(app)
-        .post(`/ownership/requests/${userLead._id}/reject`)
+        .post(`/api/ownership/requests/${userLead._id}/reject`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ reason: 'Test rejection reason' })
         .expect(200);
@@ -327,7 +328,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should allow rejection without reason', async () => {
       const response = await request(app)
-        .post(`/ownership/requests/${userLead._id}/reject`)
+        .post(`/api/ownership/requests/${userLead._id}/reject`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
@@ -346,7 +347,7 @@ describe('Ownership Approval APIs', () => {
       const mongoose = require('mongoose');
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .post(`/ownership/requests/${fakeId}/reject`)
+        .post(`/api/ownership/requests/${fakeId}/reject`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
 
@@ -363,7 +364,7 @@ describe('Ownership Approval APIs', () => {
       await newLead.save();
 
       const response = await request(app)
-        .post(`/ownership/requests/${newLead._id}/reject`)
+        .post(`/api/ownership/requests/${newLead._id}/reject`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
 
@@ -372,7 +373,7 @@ describe('Ownership Approval APIs', () => {
 
     it('should return 403 for USER (non-admin)', async () => {
       const response = await request(app)
-        .post(`/ownership/requests/${userLead._id}/reject`)
+        .post(`/api/ownership/requests/${userLead._id}/reject`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(403);
 
@@ -403,7 +404,7 @@ describe('Ownership Approval APIs', () => {
 
       // Approve (this changes owner)
       await request(app)
-        .post(`/ownership/requests/${lead._id}/approve`)
+        .post(`/api/ownership/requests/${lead._id}/approve`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
@@ -441,7 +442,7 @@ describe('Ownership Approval APIs', () => {
 
       // Reject
       await request(app)
-        .post(`/ownership/requests/${lead._id}/reject`)
+        .post(`/api/ownership/requests/${lead._id}/reject`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 

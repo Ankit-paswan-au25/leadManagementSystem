@@ -24,7 +24,7 @@ export async function loginViaAPI(page: Page, user: TestUser): Promise<string> {
   expect(response.ok()).toBeTruthy();
   const data = await response.json();
   
-  if (!data.success || !data.data?.token) {
+  if (data.status !== 'success' || !data.data?.token) {
     throw new Error(`Login failed: ${data.message || 'Unknown error'}`);
   }
 

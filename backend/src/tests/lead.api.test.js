@@ -60,7 +60,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .send(leadData)
         .expect(201);
@@ -95,7 +95,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(leadData)
         .expect(201);
@@ -116,7 +116,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(leadData)
         .expect(201);
@@ -130,7 +130,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .send(leadData)
         .expect(422);
@@ -146,7 +146,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .send(leadData)
         .expect(422);
@@ -163,7 +163,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(leadData)
         .expect(400);
@@ -173,7 +173,7 @@ describe('Lead APIs', () => {
 
     it('should return 401 for missing token', async () => {
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .send({ leadName: 'John Doe', email: 'john@example.com' })
         .expect(401);
     });
@@ -185,7 +185,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .send(leadData)
         .expect(201);
@@ -200,7 +200,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .send(leadData)
         .expect(201);
@@ -253,23 +253,23 @@ describe('Lead APIs', () => {
 
     it('should return all leads for ADMIN', async () => {
       const response = await request(app)
-        .get('/leads')
+        .get('/api/leads')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
       expect(response.body).toHaveProperty('status', 'success');
       expect(response.body.data).toHaveProperty('leads');
-      expect(response.body.data).toHaveProperty('count', 4);
+      expect(response.body.data.pagination).toHaveProperty('total', 4);
       expect(response.body.data.leads.length).toBe(4);
     });
 
     it('should return only own leads for USER', async () => {
       const response = await request(app)
-        .get('/leads')
+        .get('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(response.body.data.count).toBe(2);
+      expect(response.body.data.pagination.total).toBe(2);
       response.body.data.leads.forEach(lead => {
         expect(lead.ownerId).toBe(regularUser._id.toString());
       });
@@ -277,21 +277,21 @@ describe('Lead APIs', () => {
 
     it('should filter by status for USER', async () => {
       const response = await request(app)
-        .get('/leads?status=CONTACTED')
+        .get('/api/leads?status=CONTACTED')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(response.body.data.count).toBe(1);
+      expect(response.body.data.pagination.total).toBe(1);
       expect(response.body.data.leads[0].status).toBe(LEAD_STATUS.CONTACTED);
     });
 
     it('should filter by ownerId for ADMIN', async () => {
       const response = await request(app)
-        .get(`/leads?ownerId=${regularUser._id}`)
+        .get(`/api/leads?ownerId=${regularUser._id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(response.body.data.count).toBe(2);
+      expect(response.body.data.pagination.total).toBe(2);
       response.body.data.leads.forEach(lead => {
         expect(lead.ownerId).toBe(regularUser._id.toString());
       });
@@ -299,7 +299,7 @@ describe('Lead APIs', () => {
 
     it('should return 401 for missing token', async () => {
       await request(app)
-        .get('/leads')
+        .get('/api/leads')
         .expect(401);
     });
   });
@@ -319,7 +319,7 @@ describe('Lead APIs', () => {
 
     it('should allow current owner to request ownership change', async () => {
       const response = await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: anotherUser._id.toString() })
         .expect(200);
@@ -339,7 +339,7 @@ describe('Lead APIs', () => {
 
     it('should NOT change lead.ownerId (still current owner)', async () => {
       await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: anotherUser._id.toString() })
         .expect(200);
@@ -351,7 +351,7 @@ describe('Lead APIs', () => {
 
     it('should return 403 for non-owner requesting change', async () => {
       const response = await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${anotherUserToken}`)
         .send({ requestedOwnerId: adminUser._id.toString() })
         .expect(403);
@@ -364,7 +364,7 @@ describe('Lead APIs', () => {
       const mongoose = require('mongoose');
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
-        .post(`/leads/${fakeId}/owner-change-request`)
+        .post(`/api/leads/${fakeId}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: anotherUser._id.toString() })
         .expect(404);
@@ -375,7 +375,7 @@ describe('Lead APIs', () => {
 
     it('should return validation error for missing requestedOwnerId', async () => {
       const response = await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({})
         .expect(422);
@@ -386,7 +386,7 @@ describe('Lead APIs', () => {
 
     it('should return 400 for invalid requestedOwnerId', async () => {
       const response = await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: 'invalid-id' })
         .expect(400);
@@ -396,7 +396,7 @@ describe('Lead APIs', () => {
 
     it('should return 400 for requesting change to self', async () => {
       const response = await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: regularUser._id.toString() })
         .expect(400);
@@ -408,7 +408,7 @@ describe('Lead APIs', () => {
     it('should allow multiple pending requests', async () => {
       // First request
       await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: anotherUser._id.toString() })
         .expect(200);
@@ -424,7 +424,7 @@ describe('Lead APIs', () => {
       await adminUser2.save();
 
       await request(app)
-        .post(`/leads/${userLead._id}/owner-change-request`)
+        .post(`/api/leads/${userLead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: adminUser2._id.toString() })
         .expect(200);
@@ -446,7 +446,7 @@ describe('Lead APIs', () => {
       };
 
       const response = await request(app)
-        .post('/leads')
+        .post('/api/leads')
         .set('Authorization', `Bearer ${userToken}`)
         .send(leadData)
         .expect(201);
@@ -468,7 +468,7 @@ describe('Lead APIs', () => {
       await lead.save();
 
       await request(app)
-        .post(`/leads/${lead._id}/owner-change-request`)
+        .post(`/api/leads/${lead._id}/owner-change-request`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ requestedOwnerId: anotherUser._id.toString() })
         .expect(200);
