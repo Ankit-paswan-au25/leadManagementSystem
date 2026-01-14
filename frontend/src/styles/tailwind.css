@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme colors */
+    --color-primary-50: 240 249 255;
+    --color-primary-500: 14 165 233;
+    --color-primary-600: 2 132 199;
+    --color-primary-700: 3 105 161;
+    
+    --color-background-primary: 255 255 255;
+    --color-background-secondary: 248 250 252;
+    --color-background-tertiary: 241 245 249;
+    
+    --color-text-primary: 15 23 42;
+    --color-text-secondary: 71 85 105;
+    --color-text-tertiary: 100 116 139;
+    --color-text-inverse: 255 255 255;
+    
+    --color-border-default: 226 232 240;
+    --color-border-hover: 203 213 225;
+    --color-border-focus: 14 165 233;
+  }
+
+  .dark {
+    /* Dark theme colors */
+    --color-primary-50: 12 74 110;
+    --color-primary-500: 56 189 248;
+    --color-primary-600: 125 211 252;
+    --color-primary-700: 186 230 253;
+    
+    --color-background-primary: 15 23 42;
+    --color-background-secondary: 30 41 59;
+    --color-background-tertiary: 51 65 85;
+    
+    --color-text-primary: 248 250 252;
+    --color-text-secondary: 203 213 225;
+    --color-text-tertiary: 148 163 184;
+    --color-text-inverse: 15 23 42;
+    
+    --color-border-default: 51 65 85;
+    --color-border-hover: 71 85 105;
+    --color-border-focus: 56 189 248;
+  }
+
+  body {
+    @apply bg-background-primary text-text-primary font-sans antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-200 text-secondary-900 hover:bg-secondary-300 focus:ring-secondary-500;
+  }
+  
+  .card {
+    @apply bg-background-primary rounded-lg shadow-sm border border-border-default p-6;
+  }
+}
+

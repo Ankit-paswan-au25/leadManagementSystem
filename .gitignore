@@ -1,0 +1,7 @@
+./backend/node_modules
+./backend/.env.development
+./backend/.env.production
+./frontend/node_modules
+./frontend/.env.development
+./frontend/.env.production
+.env

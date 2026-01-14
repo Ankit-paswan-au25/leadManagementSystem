@@ -1,0 +1,58 @@
+/**
+ * Lead Status Enum
+ * 
+ * Represents the current state of a lead in the sales pipeline.
+ * Status changes are system-driven (not manually allowed in this step).
+ */
+const LEAD_STATUS = {
+  NEW: 'NEW',
+  CONTACTED: 'CONTACTED',
+  FOLLOW_UP: 'FOLLOW_UP',
+  REPLIED: 'REPLIED',
+  CLOSED: 'CLOSED',
+};
+
+/**
+ * Lead Source Enum
+ * 
+ * Represents where the lead originated from.
+ */
+const LEAD_SOURCE = {
+  MANUAL: 'MANUAL',
+  ZOHO: 'ZOHO',
+  LINKEDIN: 'LINKEDIN',
+};
+
+/**
+ * Lead Activity Type Enum
+ * 
+ * Types of activities that can be recorded for a lead.
+ */
+const ACTIVITY_TYPE = {
+  CREATED: 'CREATED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  OWNER_CHANGED: 'OWNER_CHANGED',
+  OWNER_CHANGE_REQUESTED: 'OWNER_CHANGE_REQUESTED',
+  OWNER_CHANGE_REJECTED: 'OWNER_CHANGE_REJECTED',
+  CONTACTED: 'CONTACTED',
+  EMAIL_SENT: 'EMAIL_SENT',
+  EMAIL_FAILED: 'EMAIL_FAILED',
+  EMAIL_RECEIVED: 'EMAIL_RECEIVED',
+  CLIENT_REPLIED: 'CLIENT_REPLIED',
+  NOTE_ADDED: 'NOTE_ADDED',
+  FOLLOW_UP_SCHEDULED: 'FOLLOW_UP_SCHEDULED',
+  FOLLOW_UP_COMPLETED: 'FOLLOW_UP_COMPLETED',
+  FOLLOWUP_TRIGGERED: 'FOLLOWUP_TRIGGERED',
+  SCHEDULE_PAUSED: 'SCHEDULE_PAUSED',
+  SCHEDULE_RESUMED: 'SCHEDULE_RESUMED',
+  CUSTOMER_CREATED: 'CUSTOMER_CREATED',
+  PRODUCT_ASSIGNED: 'PRODUCT_ASSIGNED',
+  PRODUCT_EXPIRED: 'PRODUCT_EXPIRED',
+};
+
+module.exports = {
+  LEAD_STATUS,
+  LEAD_SOURCE,
+  ACTIVITY_TYPE,
+};
+
