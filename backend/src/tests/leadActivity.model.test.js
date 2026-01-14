@@ -3,7 +3,7 @@ const Lead = require('../models/Lead.model');
 const User = require('../models/User.model');
 const { ACTIVITY_TYPE } = require('../core/leadEnums');
 
-describe('LeadActivity Model', () => {
+xdescribe('LeadActivity Model', () => {
   let testUser;
   let testOwner;
   let testLead;

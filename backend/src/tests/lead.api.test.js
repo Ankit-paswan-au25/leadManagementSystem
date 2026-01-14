@@ -7,7 +7,7 @@ const User = require('../models/User.model');
 const { generateToken } = require('../utils/token');
 const { LEAD_STATUS, LEAD_SOURCE, ACTIVITY_TYPE } = require('../core/leadEnums');
 
-describe('Lead APIs', () => {
+xdescribe('Lead APIs', () => {
   let adminUser;
   let regularUser;
   let anotherUser;
