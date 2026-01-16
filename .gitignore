@@ -5,3 +5,4 @@
 ./frontend/.env.development
 ./frontend/.env.production
 .env
+docker.env

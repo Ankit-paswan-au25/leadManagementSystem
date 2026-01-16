@@ -1,5 +1,5 @@
 # Backend Dockerfile
-FROM node:18-alpine
+FROM node:18-alpine AS deps
 
 # Set working directory
 WORKDIR /app
@@ -7,11 +7,22 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install production dependencies
+RUN npm ci --omit=dev
 
-# Copy application code
+FROM node:18-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy dependencies and app code
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Drop root privileges
+RUN chown -R node:node /app
+USER node
 
 # Expose port
 EXPOSE 3000
