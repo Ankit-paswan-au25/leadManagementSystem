@@ -21,9 +21,9 @@ const getBaseURL = (): string => {
   if (typeof process !== 'undefined' && process.env.VITE_API_BASE_URL) {
     return process.env.VITE_API_BASE_URL;
   }
-  
-  // Default fallback (Vite will replace import.meta.env at build time via define)
-  return 'http://localhost:3000/api';
+
+  // Default fallback (use same-origin proxy on prod)
+  return '/api';
 };
 
 /**
